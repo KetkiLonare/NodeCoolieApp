@@ -43,20 +43,20 @@ async function initDB() {
 
         // 4️⃣ Create table if not exists
         const createTableQuery = `
-      CREATE TABLE IF NOT EXISTS bookings (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255),
-        country VARCHAR(100) DEFAULT 'India',
-        state VARCHAR(100),
-        city VARCHAR(100),
-        luggage_weight FLOAT,
-        arrival_time VARCHAR(50),
-        service_type VARCHAR(100),
-        helper VARCHAR(255),
-        fare FLOAT,
-        timestamp VARCHAR(100)
-      )
-    `;
+        CREATE TABLE IF NOT EXISTS bookings (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255),
+            country VARCHAR(100) DEFAULT 'India',
+            state VARCHAR(100),
+            city VARCHAR(100),
+            luggage_weight FLOAT,
+            arrival_time VARCHAR(50),
+            service_type VARCHAR(100),
+            helper VARCHAR(255),
+            fare FLOAT,
+            timestamp VARCHAR(100)
+        )
+        `;
         await pool.query(createTableQuery);
         console.log("✅ Table 'bookings' verified or created.");
     } catch (err) {
@@ -66,6 +66,28 @@ async function initDB() {
 }
 
 await initDB();
+
+// ---------------------------
+// ✅ Health Check Endpoint
+// ---------------------------
+app.get("/health", async (req, res) => {
+    try {
+        // Check DB connectivity
+        await pool.query("SELECT 1");
+        res.status(200).json({
+            status: "ok",
+            database: "connected",
+            timestamp: new Date().toISOString(),
+        });
+    } catch (err) {
+        console.error("❌ Health check failed:", err);
+        res.status(500).json({
+            status: "error",
+            database: "disconnected",
+            error: err.message,
+        });
+    }
+});
 
 // ---------------------------
 // Booking Endpoint
@@ -78,10 +100,10 @@ app.post("/book", async (req, res) => {
         const timestamp = new Date().toISOString();
 
         const sql = `
-      INSERT INTO bookings 
-      (name, country, state, city, luggage_weight, arrival_time, service_type, helper, fare, timestamp)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+        INSERT INTO bookings 
+        (name, country, state, city, luggage_weight, arrival_time, service_type, helper, fare, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
         const values = [
             data.name,
